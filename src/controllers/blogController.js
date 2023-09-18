@@ -1,12 +1,13 @@
 const blogModel = require("../models/blog");
 
+
 function checkTags(tags) {
   let arr = [];
   for (let i = 0; i < tags.length; i++) {
     let c = 1;
     for (let j = 0; j < tags[i].length; j++) {
-      if (tags[i][j] != " ") 
-      c = 0;
+      if (tags[i][j] != " ")
+        c = 0;
     }
     if (!(tags[i] == "" || c)) {
       arr.push(tags[i]);
@@ -21,11 +22,11 @@ const createBlog = async function (req, res) {
     const authdata = data.authorId;
     // accessing authorId from token
     let authId = req.decodedToken.authorId;
-    if (authdata != authId) 
+    if (authdata != authId)
       return res.status(404).send({ status: false, msg: "not a valid author to create a blog" });
-    
-      data.tags = checkTags(data.tags);
-      data.subcategory=checkTags(data.subcategory);
+
+    data.tags = checkTags(data.tags);
+    data.subcategory = checkTags(data.subcategory);
 
     const blog = await blogModel.create(data);
     res.status(201).send({ status: true, data: blog });
@@ -46,7 +47,7 @@ const getBlogData = async (req, res) => {
     // requirement:- isDeleted(false) and isPublished(true)
     query.isDeleted = false;
     query.isPublished = true;
-// checking if the blog is present with that query(key-value);
+    // checking if the blog is present with that query(key-value);
     let doc = await blogModel.find(query);
     if (doc.length == 0) {
       return res.status(404).send({ status: false, msg: "Document not found" });
@@ -78,27 +79,28 @@ const updatedBlog = async (req, res) => {
       updateContent,
       { new: true }
     );
-// checking if the document isDeleted(true) and is not present in database
+    // checking if the document isDeleted(true) and is not present in database
     if (!updateBlog)
       return res.status(404).send({ status: false, msg: "No such data present" });
-//removing duplicate values from tags and subcategory
+    //removing duplicate values from tags and subcategory
     let tagSet = new Set([...updateBlog.tags]);
     let subSet = new Set([...updateBlog.subcategory]);
     updateBlog.tags = Array.from(tagSet);
     updateBlog.subcategory = Array.from(subSet);
 
-  //pushing and updating new and distinct values of tags and subcategory  
+    //pushing and updating new and distinct values of tags and subcategory  
     let pushData = await blogModel.findOneAndUpdate(
       { _id: blogId },
-      {$set:updateBlog},
-      {new:true}
+      { $set: updateBlog },
+      { new: true }
     );
 
     // Return the updated blog document in the response
-    res.status(200).send({status: true,
-        message: "Blog updated successfully",
-        data: pushData,
-      });
+    res.status(200).send({
+      status: true,
+      message: "Blog updated successfully",
+      data: pushData,
+    });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
@@ -110,7 +112,7 @@ const deleteBlogByPathParam = async (req, res) => {
 
     // fetching data from DB under below conditions
     let blogData = await blogModel.findOne({ _id: bId, isDeleted: false });
-// if blog is not present  
+    // if blog is not present  
     if (!blogData)
       return res.status(404).send({ status: false, msg: "Document not found" });
 
@@ -129,7 +131,7 @@ const deleteBlogByQueryParam = async (req, res) => {
     let filterData = req.query;
     let authId = req.decodedToken.authorId;
     if (filterData.authorId != authId && filterData["authorId"])
-      return res.status(404).send({status: false,msg: "Filter AuthorID is not matched with login Author"});
+      return res.status(404).send({ status: false, msg: "Filter AuthorID is not matched with login Author" });
 
     filterData["authorId"] = authId;
     let existData = await blogModel.findOne(filterData);
@@ -157,10 +159,12 @@ const deleteBlogByQueryParam = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   createBlog,
   getBlogData,
   updatedBlog,
   deleteBlogByPathParam,
-  deleteBlogByQueryParam,
+  deleteBlogByQueryParam
 };

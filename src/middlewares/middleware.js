@@ -2,6 +2,7 @@
 const authorModel = require('../models/author');
 const blogModel = require('../models/blog');
 
+
 const validEmail = async function (req, res, next) {
 
     try {
